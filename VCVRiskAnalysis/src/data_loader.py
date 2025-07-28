@@ -24,8 +24,19 @@ def download_data(
             file_path = os.path.join(local_path, f"{ticker}_data.csv")
             if not os.path.exists(file_path):
                 raise FileNotFoundError(f"Local CSV not found: {file_path}")
+
             df = pd.read_csv(file_path, index_col="date", parse_dates=True)
-            df = df[[field]].rename(columns={field: ticker})
+
+            if field not in df.columns:
+                match = [c for c in df.columns if c.lower() == field.lower()]
+                if match:
+                    field_name = match[0]
+                else:
+                    raise KeyError(f"Field '{field}' not found in {file_path}")
+            else:
+                field_name = field
+
+            df = df[[field_name]].rename(columns={field_name: ticker})
             all_data.append(df)
         prices = pd.concat(all_data, axis=1)
     else:
